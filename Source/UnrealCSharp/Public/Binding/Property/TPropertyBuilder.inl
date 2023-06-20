@@ -10,6 +10,7 @@
 #include "Template/TIsTLazyObjectPtr.inl"
 #include "Template/TIsTSoftObjectPtr.inl"
 #include "Template/TIsTSoftClassPtr.inl"
+#include "Template/TIsDerivedFromTemplate.inl"
 
 template <typename T, T, typename Enable = void>
 struct TPropertyBuilder
@@ -159,6 +160,24 @@ struct TPropertyBuilder<Result Class::*, Member, typename TEnableIf<TIsSame<Resu
 				FCSharpEnvironment::GetEnvironment().GetDomain()->String_To_UTF8(FCSharpEnvironment::GetEnvironment().
 					GetDomain()->Object_To_String(InValue, nullptr))));
 		}
+	}
+
+	static FTypeInfo* TypeInfo()
+	{
+		return TTypeInfo<Result, Result>::Get();
+	}
+};
+
+template <typename Class, typename Result, Result Class::* Member>
+struct TPropertyBuilder<Result Class::*, Member,
+                        typename TEnableIf<TIsDerivedFromTemplate<Result, TScriptDelegate>::Value>::Type>
+{
+	static void Get(const MonoObject* InMonoObject, MonoObject** OutValue)
+	{
+	}
+
+	static void Set(const MonoObject* InMonoObject, MonoObject* InValue)
+	{
 	}
 
 	static FTypeInfo* TypeInfo()

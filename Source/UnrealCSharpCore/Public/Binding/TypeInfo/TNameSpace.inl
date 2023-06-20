@@ -8,6 +8,7 @@
 #include "Template/TIsTLazyObjectPtr.inl"
 #include "Template/TIsTSoftObjectPtr.inl"
 #include "Template/TIsTSoftClassPtr.inl"
+#include "Template/TIsDerivedFromTemplate.inl"
 
 template <typename T, typename Enable = void>
 struct TNameSpace
@@ -26,6 +27,27 @@ private:
 		virtual TArray<FString, TInlineAllocator<2>> Get() const override
 		{
 			return {FUnrealCSharpFunctionLibrary::GetClassNameSpace(TRemovePointer<T>::Type::StaticClass())};
+		}
+	};
+
+public:
+	static FNameSpace* Get()
+	{
+		static FInner Instance;
+
+		return &Instance;
+	}
+};
+
+template <typename T>
+struct TNameSpace<T, typename TEnableIf<TIsDerivedFromTemplate<T, TScriptDelegate>::Value, T>::Type>
+{
+private:
+	struct FInner final : FNameSpace
+	{
+		virtual TArray<FString, TInlineAllocator<2>> Get() const override
+		{
+			return {};
 		}
 	};
 

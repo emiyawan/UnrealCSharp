@@ -10,6 +10,7 @@
 #include "Template/TIsTLazyObjectPtr.inl"
 #include "Template/TIsTSoftObjectPtr.inl"
 #include "Template/TIsTSoftClassPtr.inl"
+#include "Template/TIsDerivedFromTemplate.inl"
 
 template <typename T, typename Enable = void>
 struct TTypeInfo
@@ -265,6 +266,27 @@ private:
 		virtual FString GetClass() const override
 		{
 			return CLASS_F_NAME;
+		}
+	};
+
+public:
+	static FTypeInfo* Get()
+	{
+		static FInner Instance;
+
+		return &Instance;
+	}
+};
+
+template <typename T>
+struct TTypeInfo<T, typename TEnableIf<TIsDerivedFromTemplate<T, TScriptDelegate>::Value, T>::Type>
+{
+private:
+	struct FInner final : FCommonTypeInfo
+	{
+		virtual FString GetClass() const override
+		{
+			return TEXT("");
 		}
 	};
 
