@@ -2,13 +2,6 @@
 #include "Environment/FCSharpEnvironment.h"
 #include "Reflection/Function/FFunctionDescriptor.h"
 
-static FNativeFunctionRegistrar CallCSharpRegistrar(UObject::StaticClass(), "execCallCSharp",
-                                                    (FNativeFuncPtr)&FCSharpInvoker::execCallCSharp);
-
-extern uint8 GRegisterNative(int32 NativeBytecodeIndex, const FNativeFuncPtr& Func);
-
-uint8 CallCSharpBytecode = GRegisterNative(EX_CallCSharp, (FNativeFuncPtr)&FCSharpInvoker::execCallCSharp);
-
 DEFINE_FUNCTION(FCSharpInvoker::execCallCSharp)
 {
 	auto Function = Stack.Node;
@@ -23,15 +16,6 @@ DEFINE_FUNCTION(FCSharpInvoker::execCallCSharp)
 
 			FunctionDescriptor = FCSharpEnvironment::GetEnvironment().GetFunctionDescriptor(
 				Cast<UClass>(Function->GetOuter()), Function->GetFName());
-		}
-		else
-		{
-			if (Function->GetNativeFunc() == (FNativeFuncPtr)&FCSharpInvoker::execCallCSharp)
-			{
-				check(*Stack.Code == EX_CallCSharp);
-
-				Stack.SkipCode(1);
-			}
 		}
 	}
 

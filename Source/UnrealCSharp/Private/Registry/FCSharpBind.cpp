@@ -348,10 +348,9 @@ UFunction* FCSharpBind::GetOriginalFunction(FClassDescriptor* InClassDescriptor,
 	return GetOriginalFunction(InClassDescriptor, SuperOriginalFunction);
 }
 
-bool FCSharpBind::IsCallCSharpFunction(UFunction* InFunction)
+bool FCSharpBind::IsCallCSharpFunction(const UFunction* InFunction)
 {
-	return InFunction && (InFunction->GetNativeFunc() == &FCSharpInvoker::execCallCSharp) && (InFunction->Script.Num() >
-		0) && (InFunction->Script[0] == EX_CallCSharp);
+	return InFunction && (InFunction->GetNativeFunc() == &FCSharpInvoker::execCallCSharp);
 }
 
 UFunction* FCSharpBind::DuplicateFunction(UFunction* InOriginalFunction, UClass* InClass, const FName& InFunctionName)
@@ -399,21 +398,7 @@ void FCSharpBind::UpdateCallCSharpFunction(UFunction* InFunction)
 
 	UpdateCallCSharpFunctionFlags(InFunction);
 
-	if (!InFunction->HasAnyFunctionFlags(FUNC_Native) && InFunction->Script.Num() > 0)
-	{
-		InFunction->Script.Empty(3 + sizeof(void*));
-	}
-
 	InFunction->SetNativeFunc((FNativeFuncPtr)(&FCSharpInvoker::execCallCSharp));
-
-	if (InFunction->Script.Num() < 1)
-	{
-		InFunction->Script.Add(EX_CallCSharp);
-
-		InFunction->Script.Add(EX_Return);
-
-		InFunction->Script.Add(EX_Nothing);
-	}
 }
 
 void FCSharpBind::UpdateCallCSharpFunctionFlags(UFunction* InFunctionCallLua)
@@ -428,7 +413,16 @@ void FCSharpBind::UpdateCallCSharpFunctionFlags(UFunction* InFunctionCallLua)
 		InFunctionCallLua->FunctionFlags |= FUNC_HasOutParms;
 	}
 
-	InFunctionCallLua->FunctionFlags &= (~FUNC_Native);
+	if (!InFunctionCallLua->HasAnyFunctionFlags(FUNC_Native) && InFunctionCallLua->Script.Num() > 0)
+	{
+		InFunctionCallLua->Script.Empty(2 + sizeof(void*));
+
+		InFunctionCallLua->Script.Add(EX_Return);
+
+		InFunctionCallLua->Script.Add(EX_Nothing);
+	}
+
+	InFunctionCallLua->FunctionFlags |= FUNC_Native;
 }
 
 bool FCSharpBind::IsOverrideType(const FDomain* InDomain, MonoReflectionType* InMonoReflectionType)
