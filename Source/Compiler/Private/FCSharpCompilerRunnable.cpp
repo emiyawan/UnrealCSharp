@@ -122,7 +122,7 @@ void FCSharpCompilerRunnable::EnqueueTask()
 	Event->Trigger();
 }
 
-void FCSharpCompilerRunnable::EnqueueTask(const TArray<FFileChangeData>& FileChangeData)
+void FCSharpCompilerRunnable::EnqueueTask(const TArray<FFileChangeData>& InFileChangeData)
 {
 	{
 		FScopeLock ScopeLock(&CriticalSection);
@@ -132,7 +132,7 @@ void FCSharpCompilerRunnable::EnqueueTask(const TArray<FFileChangeData>& FileCha
 			Tasks.Empty();
 		}
 
-		FileChanges.Append(FileChangeData);
+		FileChanges.Append(InFileChangeData);
 
 		Tasks.Enqueue(true);
 	}
@@ -149,10 +149,7 @@ void FCSharpCompilerRunnable::DoWork()
 {
 	Compile([&]()
 	{
-		if (!GExitPurge)
-		{
-			FDynamicGenerator::Generator(FileChanges);
-		}
+		FDynamicGenerator::Generator(FileChanges);
 
 		FileChanges.Empty();
 	});
@@ -178,7 +175,15 @@ void FCSharpCompilerRunnable::Compile(const TFunction<void()>& InFunction)
 			Compile();
 
 			const auto Task = FFunctionGraphTask::CreateAndDispatchWhenReady(
-				InFunction,
+				[InFunction, this]()
+				{
+					if (!GExitPurge)
+					{
+						FUnrealCSharpCoreModuleDelegates::OnCompile.Broadcast(FileChanges);
+
+						InFunction();
+					}
+				},
 				TStatId(),
 				nullptr,
 				ENamedThreads::GameThread);
@@ -192,6 +197,11 @@ void FCSharpCompilerRunnable::Compile(const TFunction<void()>& InFunction)
 
 void FCSharpCompilerRunnable::Compile()
 {
+	if (!IFileManager::Get().FileExists(*FUnrealCSharpFunctionLibrary::GetGameProjectPath()))
+	{
+		return;
+	}
+
 	AsyncTask(ENamedThreads::GameThread, [this]()
 	{
 		static const FName CompileStatusBackground("Blueprint.CompileStatus.Background");

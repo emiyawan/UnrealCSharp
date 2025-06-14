@@ -1,7 +1,17 @@
 #include "Delegate/FUnrealCSharpCoreModuleDelegates.h"
 
+FUnrealCSharpCoreModuleDelegates::FOnUnrealCSharpCoreModuleActive
+FUnrealCSharpCoreModuleDelegates::OnUnrealCSharpCoreModuleActive;
+
+FUnrealCSharpCoreModuleDelegates::FOnUnrealCSharpCoreModuleInActive
+FUnrealCSharpCoreModuleDelegates::OnUnrealCSharpCoreModuleInActive;
+
 FUnrealCSharpCoreModuleDelegates::FOnBeginGenerator FUnrealCSharpCoreModuleDelegates::OnBeginGenerator;
 
 FUnrealCSharpCoreModuleDelegates::FOnEndGenerator FUnrealCSharpCoreModuleDelegates::OnEndGenerator;
 
+#if WITH_EDITOR
 FUnrealCSharpCoreModuleDelegates::FOnDynamicClassUpdated FUnrealCSharpCoreModuleDelegates::OnDynamicClassUpdated;
+
+FUnrealCSharpCoreModuleDelegates::FOnCompile FUnrealCSharpCoreModuleDelegates::OnCompile;
+#endif

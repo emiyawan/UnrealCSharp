@@ -51,11 +51,6 @@ struct TPrimitivePropertyValue
 		return FCSharpEnvironment::GetEnvironment().GetDomain()->Value_Box(
 			TPropertyClass<T, T>::Get(), InMember);
 	}
-
-	static auto Set(MonoObject* InValue)
-	{
-		return *(std::decay_t<T>*)FCSharpEnvironment::GetEnvironment().GetDomain()->Object_Unbox(InValue);
-	}
 };
 
 template <typename T>
@@ -71,7 +66,7 @@ struct TStringPropertyValue
 
 			SrcMonoObject = FCSharpEnvironment::GetEnvironment().GetDomain()->Object_New(FoundMonoClass);
 
-			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, false>(
+			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, false, true>(
 				SrcMonoObject, InMember);
 		}
 
@@ -87,12 +82,12 @@ struct TStringPropertyValue
 
 		if constexpr (IsReference)
 		{
-			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, false>(
+			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, false, false>(
 				SrcMonoObject, InMember);
 		}
 		else
 		{
-			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, true>(
+			FCSharpEnvironment::GetEnvironment().AddStringReference<std::decay_t<T>, true, false>(
 				SrcMonoObject, new std::decay_t<T>(*InMember));
 		}
 
@@ -118,7 +113,7 @@ struct TMultiPropertyValue
 
 			SrcMonoObject = FCSharpEnvironment::GetEnvironment().GetDomain()->Object_New(FoundMonoClass);
 
-			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, false>(
+			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, false, true>(
 				SrcMonoObject, InMember);
 		}
 
@@ -134,12 +129,12 @@ struct TMultiPropertyValue
 
 		if constexpr (IsReference)
 		{
-			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, false>(
+			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, false, false>(
 				SrcMonoObject, InMember);
 		}
 		else
 		{
-			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, true>(
+			FCSharpEnvironment::GetEnvironment().AddMultiReference<std::decay_t<T>, true, false>(
 				SrcMonoObject, new std::decay_t<T>(*InMember));
 		}
 
@@ -959,7 +954,7 @@ struct TPropertyValue<T, std::enable_if_t<TIsTOptional<std::decay_t<T>>::Value, 
 			const auto OptionalProperty = new FOptionalProperty(nullptr, "", EObjectFlags::RF_Transient);
 
 			const auto Property = FTypeBridge::Factory<>(FoundPropertyReflectionType, nullptr, "",
-			                                           EObjectFlags::RF_Transient);
+			                                             EObjectFlags::RF_Transient);
 
 			Property->SetPropertyFlags(CPF_HasGetValueTypeHash);
 
@@ -970,7 +965,7 @@ struct TPropertyValue<T, std::enable_if_t<TIsTOptional<std::decay_t<T>>::Value, 
 			const auto OptionalHelper = new FOptionalHelper(OptionalProperty, InMember,
 			                                                false, true);
 
-			FCSharpEnvironment::GetEnvironment().AddOptionalReference(
+			FCSharpEnvironment::GetEnvironment().AddOptionalReference<FOptionalHelper, true>(
 				InMember, OptionalHelper, SrcMonoObject);
 		}
 
@@ -996,7 +991,7 @@ struct TPropertyValue<T, std::enable_if_t<TIsTOptional<std::decay_t<T>>::Value, 
 		const auto OptionalProperty = new FOptionalProperty(nullptr, "", EObjectFlags::RF_Transient);
 
 		const auto Property = FTypeBridge::Factory<>(FoundPropertyReflectionType, nullptr, "",
-		                                           EObjectFlags::RF_Transient);
+		                                             EObjectFlags::RF_Transient);
 
 		Property->SetPropertyFlags(CPF_HasGetValueTypeHash);
 
@@ -1009,7 +1004,7 @@ struct TPropertyValue<T, std::enable_if_t<TIsTOptional<std::decay_t<T>>::Value, 
 			const auto OptionalHelper = new FOptionalHelper(OptionalProperty, InMember,
 			                                                false, true);
 
-			FCSharpEnvironment::GetEnvironment().AddOptionalReference(
+			FCSharpEnvironment::GetEnvironment().AddOptionalReference<FOptionalHelper, false>(
 				InMember, OptionalHelper, SrcMonoObject);
 		}
 		else
@@ -1017,8 +1012,8 @@ struct TPropertyValue<T, std::enable_if_t<TIsTOptional<std::decay_t<T>>::Value, 
 			const auto OptionalHelper = new FOptionalHelper(OptionalProperty, new std::decay_t<T>(*InMember),
 			                                                true, true);
 
-			FCSharpEnvironment::GetEnvironment().AddOptionalReference(
-				OptionalHelper, SrcMonoObject);
+			FCSharpEnvironment::GetEnvironment().AddOptionalReference<FOptionalHelper, false>(
+				InMember, OptionalHelper, SrcMonoObject);
 		}
 
 		return SrcMonoObject;

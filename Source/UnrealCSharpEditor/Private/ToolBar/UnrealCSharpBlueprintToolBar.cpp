@@ -100,8 +100,8 @@ void FUnrealCSharpBlueprintToolBar::BuildAction()
 				{
 					if (Blueprint->GeneratedClass->IsChildOf(TemplateClass))
 					{
-						const auto Template = FUnrealCSharpFunctionLibrary::GetPluginTemplateDirectory()
-							/ TemplateClass->GetName() + CSHARP_SUFFIX;
+						const auto Template = FUnrealCSharpFunctionLibrary::GetPluginTemplateOverrideFileName(
+							TemplateClass);
 
 						FString Content;
 
@@ -120,10 +120,18 @@ void FUnrealCSharpBlueprintToolBar::BuildAction()
 							                                       Blueprint->GeneratedClass))
 						);
 
-						Content.ReplaceInline(*FUnrealCSharpFunctionLibrary::GetFullClass(
-							                      TemplateClass),
-						                      *FUnrealCSharpFunctionLibrary::GetFullClass(
-							                      Blueprint->GeneratedClass));
+						Content.ReplaceInline(*FString::Printf(TEXT(
+							                      " %s"
+						                      ),
+						                                       *FUnrealCSharpFunctionLibrary::GetFullClass(
+							                                       TemplateClass)
+						                      ),
+						                      *FString::Printf(TEXT(
+							                      " %s"
+						                      ),
+						                                       *FUnrealCSharpFunctionLibrary::GetFullClass(
+							                                       Blueprint->GeneratedClass))
+						);
 
 						if (const auto FileName = GetFileName();
 							FUnrealCSharpFunctionLibrary::SaveStringToFile(FileName, Content))
@@ -253,10 +261,10 @@ FString FUnrealCSharpBlueprintToolBar::GetFileName() const
 		auto DirectoryName = FPaths::Combine(FUnrealCSharpFunctionLibrary::GetGameDirectory(), ModuleName);
 
 		auto ModuleRelativeFile = FPaths::Combine(
-			FPaths::GetPath(FUnrealCSharpFunctionLibrary::GetModuleRelativePath(Blueprint->GeneratedClass)),
+			FUnrealCSharpFunctionLibrary::GetModuleRelativePath(Blueprint->GeneratedClass),
 			Blueprint->GeneratedClass->GetName());
 
-		return FPaths::Combine(DirectoryName, ModuleRelativeFile) / CSHARP_SUFFIX;
+		return FPaths::Combine(DirectoryName, ModuleRelativeFile) + CSHARP_SUFFIX;
 	}
 
 	return {};

@@ -11,13 +11,13 @@ public:
 	static void CodeAnalysisGenerator();
 
 	static bool IsDynamicEnum(MonoClass* InMonoClass);
-
-	static MonoClass* GetMonoClass(const FString& InName);
 #endif
 
 	static void Generator(MonoClass* InMonoClass);
 
-	static bool UNREALCSHARPCORE_API IsDynamicEnum(const UEnum* InEnum);
+	static bool IsDynamicEnum(const UEnum* InEnum);
+
+	static FString GetNameSpace(const UEnum* InEnum);
 
 private:
 	static void BeginGenerator(const UEnum* InEnum);
@@ -26,21 +26,22 @@ private:
 
 	static void EndGenerator(UEnum* InEnum);
 
-	static void GeneratorEnum(const FString& InName, UEnum* InEnum,
+	static void GeneratorEnum(const FString& InNameSpace, const FString& InName, UEnum* InEnum,
 	                          const TFunction<void(UEnum*)>& InProcessGenerator);
 
-	static UEnum* GeneratorEnum(UPackage* InOuter, const FString& InName);
+	static UEnum* GeneratorEnum(UPackage* InOuter, const FString& InNameSpace, const FString& InName);
 
-	static UEnum* GeneratorEnum(UPackage* InOuter, const FString& InName,
+	static UEnum* GeneratorEnum(UPackage* InOuter, const FString& InNameSpace, const FString& InName,
 	                            const TFunction<void(UEnum*)>& InProcessGenerator);
 
 #if WITH_EDITOR
 	static void ReInstance(UEnum* InEnum);
-
-	static void GeneratorMetaData(MonoClass* InMonoClass, UEnum* InEnum);
 #endif
 
 	static void GeneratorEnumerator(MonoClass* InMonoClass, UEnum* InEnum);
+
+private:
+	static TMap<UEnum*, FString> NamespaceMap;
 
 	static TMap<FString, UEnum*> DynamicEnumMap;
 

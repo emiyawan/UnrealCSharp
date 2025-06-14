@@ -3,7 +3,7 @@
 #include "Engine/UserDefinedEnum.h"
 #include "Common/FUnrealCSharpFunctionLibrary.h"
 #include "CoreMacro/NamespaceMacro.h"
-#include "Dynamic/FDynamicEnumGenerator.h"
+#include "Dynamic/FDynamicGenerator.h"
 
 TMap<const UEnum*, EEnumUnderlyingType> FEnumGenerator::EnumUnderlyingType;
 
@@ -27,7 +27,7 @@ void FEnumGenerator::Generator(const UEnum* InEnum)
 		return;
 	}
 
-	if (FDynamicEnumGenerator::IsDynamicEnum(InEnum))
+	if (FDynamicGenerator::IsDynamicEnum(InEnum))
 	{
 		return;
 	}
@@ -62,7 +62,7 @@ void FEnumGenerator::Generator(const UEnum* InEnum)
 	{
 		const auto EnumeratorValue = InEnum->GetValueByIndex(Index);
 
-		if (EnumeratorValue == InEnum->GetMaxEnumValue())
+		if (InEnum->NumEnums() != 1 && EnumeratorValue == InEnum->GetMaxEnumValue())
 		{
 			break;
 		}
@@ -196,7 +196,9 @@ void FEnumGenerator::GeneratorCollisionChannel()
 		EnumeratorContent += FString::Printf(TEXT(
 			"\t\t%s = %lld%s\n"
 		),
-		                                     *CollisionProfile->ReturnChannelNameFromContainerIndex(Index).ToString(),
+		                                     *FUnrealCSharpFunctionLibrary::Encode(
+			                                     CollisionProfile->ReturnChannelNameFromContainerIndex(Index).
+			                                                       ToString(), false),
 		                                     EnumeratorValue, Index == InEnum->NumEnums() - 1 ? TEXT("") : TEXT(","));
 	}
 
